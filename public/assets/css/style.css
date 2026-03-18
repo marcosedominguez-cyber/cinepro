@@ -1,0 +1,74 @@
+body.bg-app {
+    background: #f4f7fb;
+    color: #1e293b;
+}
+
+.hero-box {
+    background: linear-gradient(135deg, #0f172a, #1d4ed8);
+    color: white;
+    border-radius: 24px;
+    padding: 48px;
+    min-height: 320px;
+    display: flex;
+    align-items: center;
+}
+
+.card-pelicula {
+    border-radius: 20px;
+}
+
+.funcion-item {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.92rem;
+    padding: 10px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.funcion-item:last-child {
+    border-bottom: none;
+}
+
+.seat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 12px;
+}
+
+.seat-card {
+    position: relative;
+    display: block;
+    cursor: pointer;
+}
+
+.seat-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+}
+
+.seat-card span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60px;
+    border-radius: 16px;
+    background: #e2e8f0;
+    color: #0f172a;
+    font-weight: 700;
+    transition: 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.seat-card input[type="radio"]:checked + span {
+    background: #16a34a;
+    color: white;
+    border-color: #166534;
+    transform: translateY(-2px);
+}
+
+.card,
+.alert,
+.table {
+    border-radius: 16px;
+}
