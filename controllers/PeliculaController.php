@@ -5,12 +5,14 @@ class PeliculaController
     private PDO $db;
     private Pelicula $peliculaModel;
     private Funcion $funcionModel;
+    private Genero $generoModel;
 
     public function __construct(PDO $db)
     {
         $this->db = $db;
         $this->peliculaModel = new Pelicula($db);
         $this->funcionModel = new Funcion($db);
+        $this->generoModel = new Genero($db);
     }
 
     public function cartelera(): void
@@ -27,6 +29,8 @@ class PeliculaController
             $titulo = trim($_POST['titulo'] ?? '');
             $duracion = (int)($_POST['duracion'] ?? 0);
             $sinopsis = trim($_POST['sinopsis'] ?? '');
+            $idsGeneros = $_POST['generos'] ?? [];
+            $nuevoGenero = trim($_POST['nuevo_genero'] ?? '');
             $rutaImagen = null;
 
             if (!empty($_FILES['imagen']['name'])) {
@@ -53,7 +57,62 @@ class PeliculaController
             }
 
             if ($titulo !== '' && $duracion > 0) {
-                $this->peliculaModel->crear($titulo, $duracion, $sinopsis, $rutaImagen);
+                $this->db->beginTransaction();
+
+                try {
+                    $idPelicula = $this->peliculaModel->crear($titulo, $duracion, $sinopsis, $rutaImagen);
+
+                    if ($nuevoGenero !== '') {
+                        $generoExistente = $this->generoModel->obtenerPorNombre($nuevoGenero);
+
+                        if ($generoExistente) {
+                            $idsGeneros[] = $generoExistente['ID_Genero'];
+                        } else {
+                            $this->generoModel->crear($nuevoGenero);
+                            $nuevo = $this->generoModel->obtenerPorNombre($nuevoGenero);
+                            if ($nuevo) {
+                                $idsGeneros[] = $nuevo['ID_Genero'];
+                            }
+                        }
+                    }
+
+                    $idsGeneros = array_unique(array_map('intval', $idsGeneros));
+                    $this->generoModel->asignarAGenero($idPelicula, $idsGeneros);
+
+                    $this->db->commit();
+                    $_SESSION['success_admin'] = 'Película guardada correctamente.';
+                } catch (Throwable $e) {
+                    $this->db->rollBack();
+                    $_SESSION['error_admin'] = 'No se pudo guardar la película.';
+                }
+            }
+        }
+
+        header('Location: index.php?accion=admin');
+        exit;
+    }
+
+    public function eliminar(): void
+    {
+        $id = (int)($_GET['id'] ?? 0);
+
+        if ($id > 0) {
+            try {
+                $pelicula = $this->peliculaModel->obtenerPorId($id);
+
+                if ($pelicula) {
+                    if (!empty($pelicula['Imagen'])) {
+                        $rutaFisica = __DIR__ . '/../' . $pelicula['Imagen'];
+                        if (file_exists($rutaFisica)) {
+                            unlink($rutaFisica);
+                        }
+                    }
+
+                    $this->peliculaModel->eliminar($id);
+                    $_SESSION['success_admin'] = 'Película eliminada correctamente.';
+                }
+            } catch (Throwable $e) {
+                $_SESSION['error_admin'] = 'No se pudo eliminar la película.';
             }
         }
 

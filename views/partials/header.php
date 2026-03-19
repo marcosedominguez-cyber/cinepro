@@ -6,16 +6,17 @@ $accionActual = $_GET['accion'] ?? 'home';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Cine</title>
+    <title>Cine Python | Sistema de Cine</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="public/css/styles.css" rel="stylesheet">
+    
+    <link href="public/assets/css/style.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm border-bottom py-3">
     <div class="container">
-        <a class="navbar-brand brand-cine" href="index.php">
-            <img src="public/img/logo.png" alt="Logo Cine" class="logo-cine">
-            <span>Cine</span>
+        <a class="navbar-brand brand-cine-python" href="index.php">
+            CINE <span>PYTHON</span>
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal">
@@ -23,32 +24,29 @@ $accionActual = $_GET['accion'] ?? 'home';
         </button>
 
         <div class="collapse navbar-collapse" id="menuPrincipal">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
                 <li class="nav-item">
-                    <a class="nav-link <?= $accionActual === 'home' ? 'active' : '' ?>" href="index.php">Inicio</a>
+                    <a class="nav-link <?= $accionActual === 'home' ? 'active' : '' ?>" href="index.php">INICIO</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link <?= $accionActual === 'cartelera' ? 'active' : '' ?>" href="index.php?accion=cartelera">Cartelera</a>
+                    <a class="nav-link <?= $accionActual === 'cartelera' ? 'active' : '' ?>" href="index.php?accion=cartelera">PELÍCULAS</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link <?= $accionActual === 'compra' ? 'active' : '' ?>" href="index.php?accion=compra">Compra</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link <?= $accionActual === 'login' ? 'active' : '' ?>" href="index.php?accion=login">Login</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link <?= $accionActual === 'admin' ? 'active' : '' ?>" href="index.php?accion=admin">Admin</a>
+                    <a class="nav-link <?= $accionActual === 'compra' ? 'active' : '' ?>" href="index.php?accion=compra">COMPRA</a>
                 </li>
             </ul>
 
-            <div class="d-flex align-items-center gap-2 text-white">
+            <div class="d-flex align-items-center gap-3">
                 <?php if (isset($_SESSION['id_cliente'])): ?>
-                    <span class="small">Hola, <?= htmlspecialchars($_SESSION['nombre_cliente']) ?></span>
-                    <a href="index.php?accion=logout" class="btn btn-outline-light btn-sm">Salir</a>
+                    <span class="text-muted small">Hola, <strong><?= htmlspecialchars($_SESSION['nombre_cliente']) ?></strong></span>
+                    <a href="index.php?accion=logout" class="btn btn-outline-danger btn-sm px-3">SALIR</a>
+                <?php else: ?>
+                    <a href="index.php?accion=login" class="btn btn-dark-cinema btn-sm px-4 <?= $accionActual === 'login' ? 'active' : '' ?>">LOGIN</a>
+                    <a href="index.php?accion=admin" class="btn btn-outline-dark btn-sm px-4">ADMIN</a>
                 <?php endif; ?>
             </div>
         </div>
     </div>
 </nav>
 
-<main class="container py-4">
+<main class="container py-5">

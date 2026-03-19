@@ -2,11 +2,23 @@
 
 <h2 class="mb-4">Panel administrador</h2>
 
+<?php if (isset($_SESSION['success_admin'])): ?>
+    <div class="alert alert-success">
+        <?= htmlspecialchars($_SESSION['success_admin']) ?>
+    </div>
+    <?php unset($_SESSION['success_admin']); ?>
+<?php endif; ?>
+
+<?php if (isset($_SESSION['error_admin'])): ?>
+    <div class="alert alert-danger">
+        <?= htmlspecialchars($_SESSION['error_admin']) ?>
+    </div>
+    <?php unset($_SESSION['error_admin']); ?>
+<?php endif; ?>
+
 <div class="row g-4">
-    <!-- COLUMNA IZQUIERDA -->
     <div class="col-lg-6">
 
-        <!-- AGREGAR PELÍCULA -->
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body">
                 <h5 class="mb-3">Agregar película</h5>
@@ -28,7 +40,24 @@
                         <textarea name="sinopsis" class="form-control" rows="3"></textarea>
                     </div>
 
-                    <!-- NUEVO: IMAGEN -->
+                    <div class="mb-3">
+                        <label class="form-label">Géneros existentes</label>
+                        <select name="generos[]" class="form-select" multiple>
+                            <?php foreach ($generos as $genero): ?>
+                                <option value="<?= (int)$genero['ID_Genero'] ?>">
+                                    <?= htmlspecialchars($genero['Nombre_Genero']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <small class="text-muted">Puedes seleccionar uno o varios.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Nuevo género</label>
+                        <input type="text" name="nuevo_genero" class="form-control" placeholder="Ej. Ciencia ficción">
+                        <small class="text-muted">Si escribes uno nuevo, se creará automáticamente.</small>
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label">Imagen / Poster</label>
                         <input type="file" name="imagen" class="form-control" accept=".jpg,.jpeg,.png,.webp">
@@ -39,7 +68,60 @@
             </div>
         </div>
 
-        <!-- AGREGAR SALA -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <h5 class="mb-3">Películas registradas</h5>
+
+                <?php if (!empty($peliculas)): ?>
+                    <div class="d-grid gap-3">
+                        <?php foreach ($peliculas as $pelicula): ?>
+                            <div class="border rounded p-3">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <div style="width: 90px; flex-shrink: 0;">
+                                        <?php if (!empty($pelicula['Imagen'])): ?>
+                                            <img 
+                                                src="<?= htmlspecialchars($pelicula['Imagen']) ?>" 
+                                                alt="<?= htmlspecialchars($pelicula['Titulo']) ?>"
+                                                class="img-fluid rounded"
+                                                style="height: 120px; width: 100%; object-fit: cover;">
+                                        <?php else: ?>
+                                            <div class="bg-light rounded d-flex align-items-center justify-content-center text-muted"
+                                                 style="height: 120px;">
+                                                Sin imagen
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1"><?= htmlspecialchars($pelicula['Titulo']) ?></h6>
+                                        <p class="mb-1 text-muted">Duración: <?= htmlspecialchars((string)$pelicula['Duracion']) ?> min</p>
+
+                                        <?php if (!empty($pelicula['Generos'])): ?>
+                                            <p class="mb-1">
+                                                <strong>Géneros:</strong>
+                                                <?= htmlspecialchars(implode(', ', $pelicula['Generos'])) ?>
+                                            </p>
+                                        <?php endif; ?>
+
+                                        <p class="mb-2 small"><?= htmlspecialchars($pelicula['Sinopsis'] ?? '') ?></p>
+
+                                        <a 
+                                            href="index.php?accion=eliminar_pelicula&id=<?= (int)$pelicula['ID_Pelicula'] ?>"
+                                            class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('¿Seguro que deseas eliminar esta película? Esto también eliminará sus funciones y tickets relacionados.');">
+                                            Eliminar
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <p class="mb-0 text-muted">No hay películas registradas.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body">
                 <h5 class="mb-3">Agregar sala</h5>
@@ -60,7 +142,6 @@
             </div>
         </div>
 
-        <!-- CREAR ASIENTOS -->
         <div class="card shadow-sm border-0">
             <div class="card-body">
                 <h5 class="mb-3">Crear asientos</h5>
@@ -93,13 +174,10 @@
                 </form>
             </div>
         </div>
-
     </div>
 
-    <!-- COLUMNA DERECHA -->
     <div class="col-lg-6">
 
-        <!-- AGREGAR FUNCIÓN -->
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body">
                 <h5 class="mb-3">Agregar función</h5>
@@ -150,7 +228,6 @@
             </div>
         </div>
 
-        <!-- TICKETS VENDIDOS -->
         <div class="card shadow-sm border-0">
             <div class="card-body">
                 <h5 class="mb-3">Tickets vendidos</h5>

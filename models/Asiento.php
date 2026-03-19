@@ -71,4 +71,18 @@ class Asiento
         $stmt->execute([':id_funcion' => $idFuncion]);
         return $stmt->fetchAll();
     }
+
+    public function obtenerEstadoAsientosPorFuncion(int $idFuncion): array
+    {
+        $sql = "SELECT a.ID_Asiento, a.Fila, a.Numero_Asiento,
+                       CASE WHEN t.ID_Asiento IS NOT NULL THEN 1 ELSE 0 END AS Ocupado
+                FROM asiento a
+                INNER JOIN funcion f ON f.ID_Sala = a.ID_Sala
+                LEFT JOIN ticket_compra t ON t.ID_Asiento = a.ID_Asiento AND t.ID_Funcion = :id_funcion
+                WHERE f.ID_Funcion = :id_funcion
+                ORDER BY a.Fila, CAST(a.Numero_Asiento AS UNSIGNED)";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([':id_funcion' => $idFuncion]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

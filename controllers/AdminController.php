@@ -8,6 +8,7 @@ class AdminController
     private Funcion $funcionModel;
     private Ticket $ticketModel;
     private Asiento $asientoModel;
+    private Genero $generoModel;
 
     public function __construct(PDO $db)
     {
@@ -17,6 +18,7 @@ class AdminController
         $this->funcionModel = new Funcion($db);
         $this->ticketModel = new Ticket($db);
         $this->asientoModel = new Asiento($db);
+        $this->generoModel = new Genero($db);
     }
 
     public function index(): void
@@ -24,6 +26,7 @@ class AdminController
         $peliculas = $this->peliculaModel->listar();
         $salas = $this->salaModel->listar();
         $tickets = $this->ticketModel->listarVendidos();
+        $generos = $this->generoModel->listar();
 
         require __DIR__ . '/../views/admin.php';
     }

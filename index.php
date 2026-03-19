@@ -11,6 +11,7 @@ require_once __DIR__ . '/models/Cliente.php';
 require_once __DIR__ . '/models/Pago.php';
 require_once __DIR__ . '/models/Ticket.php';
 require_once __DIR__ . '/models/Compra.php';
+require_once __DIR__ . '/models/Genero.php';
 
 require_once __DIR__ . '/controllers/HomeController.php';
 require_once __DIR__ . '/controllers/PeliculaController.php';
@@ -80,6 +81,10 @@ switch ($accion) {
 
     case 'registrar':
         (new AuthController($db))->registrar();
-        break;    
+        break; 
+        
+    case 'eliminar_pelicula':
+        (new PeliculaController($db))->eliminar();
+        break;        
         
 }

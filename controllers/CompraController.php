@@ -21,7 +21,7 @@ class CompraController
     {
         $funciones = $this->funcionModel->listarConPeliculaYSala();
         $funcionSeleccionada = null;
-        $asientosDisponibles = [];
+        $mapaAsientos = []; // Cambiamos esto para guardar las filas completas
 
         $idFuncion = (int)($_GET['id_funcion'] ?? 0);
 
@@ -29,7 +29,13 @@ class CompraController
             $funcionSeleccionada = $this->funcionModel->obtenerPorId($idFuncion);
 
             if ($funcionSeleccionada) {
-                $asientosDisponibles = $this->asientoModel->obtenerDisponiblesPorFuncion($idFuncion);
+                // Usamos la nueva función del Modelo
+                $asientosRaw = $this->asientoModel->obtenerEstadoAsientosPorFuncion($idFuncion);
+                
+                // Agrupamos los asientos por su letra de Fila (A, B, C...)
+                foreach ($asientosRaw as $asiento) {
+                    $mapaAsientos[$asiento['Fila']][] = $asiento;
+                }
             }
         }
 
