@@ -2,27 +2,26 @@
 
 class Database
 {
-    private string $host = "localhost";
-    private string $db_name = "CinePython";
-    private string $username = "root";
-    private string $password = "";
-    private ?PDO $conn = null;
+    private static ?PDO $conn = null;
 
-    public function conectar(): ?PDO
+    public static function connect(): PDO
     {
-        try {
-            $this->conn = new PDO(
-                "mysql:host={$this->host};dbname={$this->db_name};charset=utf8mb4",
-                $this->username,
-                $this->password
-            );
+        if (self::$conn === null) {
+            $host = '127.0.0.1';
+            $port = '3306';
+            $dbname = 'cinepython';
+            $user = 'root';
+            $pass = '';
+            $charset = 'utf8mb4';
 
-            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+            $dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset={$charset}";
 
-            return $this->conn;
-        } catch (PDOException $e) {
-            die("Error de conexión: " . $e->getMessage());
+            self::$conn = new PDO($dsn, $user, $pass, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ]);
         }
+
+        return self::$conn;
     }
 }

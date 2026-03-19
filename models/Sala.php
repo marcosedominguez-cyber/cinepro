@@ -1,5 +1,4 @@
 <?php
-require_once __DIR__ . '/../config/database.php';
 
 class Sala
 {
@@ -15,7 +14,7 @@ class Sala
     {
         $sql = "SELECT ID_Sala, Nombre, Capacidad
                 FROM {$this->table}
-                ORDER BY ID_Sala";
+                ORDER BY ID_Sala ASC";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll();
@@ -31,17 +30,5 @@ class Sala
             ':nombre' => $nombre,
             ':capacidad' => $capacidad
         ]);
-    }
-
-    public function obtenerPorId(int $id): ?array
-    {
-        $sql = "SELECT ID_Sala, Nombre, Capacidad
-                FROM {$this->table}
-                WHERE ID_Sala = :id";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([':id' => $id]);
-        $sala = $stmt->fetch();
-
-        return $sala ?: null;
     }
 }

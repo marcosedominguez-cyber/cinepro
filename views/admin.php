@@ -3,49 +3,70 @@
 <h2 class="mb-4">Panel administrador</h2>
 
 <div class="row g-4">
+    <!-- COLUMNA IZQUIERDA -->
     <div class="col-lg-6">
+
+        <!-- AGREGAR PELÍCULA -->
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body">
                 <h5 class="mb-3">Agregar película</h5>
-                <form method="POST" action="index.php?accion=guardar_pelicula">
+
+                <form method="POST" action="index.php?accion=guardar_pelicula" enctype="multipart/form-data">
+
                     <div class="mb-3">
                         <label class="form-label">Título</label>
                         <input type="text" name="titulo" class="form-control" required>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label">Duración</label>
                         <input type="number" name="duracion" class="form-control" required>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label">Sinopsis</label>
                         <textarea name="sinopsis" class="form-control" rows="3"></textarea>
                     </div>
-                    <button class="btn btn-primary">Guardar película</button>
+
+                    <!-- NUEVO: IMAGEN -->
+                    <div class="mb-3">
+                        <label class="form-label">Imagen / Poster</label>
+                        <input type="file" name="imagen" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+                    </div>
+
+                    <button class="btn btn-primary w-100">Guardar película</button>
                 </form>
             </div>
         </div>
 
+        <!-- AGREGAR SALA -->
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body">
                 <h5 class="mb-3">Agregar sala</h5>
+
                 <form method="POST" action="index.php?accion=guardar_sala">
                     <div class="mb-3">
                         <label class="form-label">Nombre</label>
                         <input type="text" name="nombre" class="form-control" required>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label">Capacidad</label>
                         <input type="number" name="capacidad" class="form-control" required>
                     </div>
-                    <button class="btn btn-dark">Guardar sala</button>
+
+                    <button class="btn btn-dark w-100">Guardar sala</button>
                 </form>
             </div>
         </div>
 
+        <!-- CREAR ASIENTOS -->
         <div class="card shadow-sm border-0">
             <div class="card-body">
                 <h5 class="mb-3">Crear asientos</h5>
+
                 <form method="POST" action="index.php?accion=guardar_asientos">
+
                     <div class="mb-3">
                         <label class="form-label">Sala</label>
                         <select name="id_sala" class="form-select" required>
@@ -68,17 +89,23 @@
                         <input type="number" name="asientos_por_fila" class="form-control" required>
                     </div>
 
-                    <button class="btn btn-success">Crear asientos</button>
+                    <button class="btn btn-success w-100">Crear asientos</button>
                 </form>
             </div>
         </div>
+
     </div>
 
+    <!-- COLUMNA DERECHA -->
     <div class="col-lg-6">
+
+        <!-- AGREGAR FUNCIÓN -->
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body">
                 <h5 class="mb-3">Agregar función</h5>
+
                 <form method="POST" action="index.php?accion=guardar_funcion">
+
                     <div class="mb-3">
                         <label class="form-label">Fecha</label>
                         <input type="date" name="fecha_funcion" class="form-control" required>
@@ -118,11 +145,12 @@
                         </select>
                     </div>
 
-                    <button class="btn btn-warning">Guardar función</button>
+                    <button class="btn btn-warning w-100">Guardar función</button>
                 </form>
             </div>
         </div>
 
+        <!-- TICKETS VENDIDOS -->
         <div class="card shadow-sm border-0">
             <div class="card-body">
                 <h5 class="mb-3">Tickets vendidos</h5>
@@ -165,6 +193,7 @@
                 <?php endif; ?>
             </div>
         </div>
+
     </div>
 </div>
 

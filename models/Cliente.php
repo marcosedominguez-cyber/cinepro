@@ -1,10 +1,9 @@
 <?php
-require_once __DIR__ . '/../config/database.php';
 
 class Cliente
 {
     private PDO $conn;
-    private string $table = "Cliente";
+    private string $table = "cliente";
 
     public function __construct(PDO $db)
     {
@@ -13,43 +12,53 @@ class Cliente
 
     public function buscarPorCorreo(string $correo): ?array
     {
-        $sql = "SELECT ID_Cliente, Nombre_Cliente, Apellido_Cliente, Numero, Correo, Contrasena
+        $sql = "SELECT *
                 FROM {$this->table}
-                WHERE Correo = :correo";
+                WHERE Correo = :correo
+                LIMIT 1";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([':correo' => $correo]);
-        $cliente = $stmt->fetch();
+        $data = $stmt->fetch();
 
-        return $cliente ?: null;
+        return $data ?: null;
     }
 
-    public function crear(string $nombre, string $apellido, string $numero, string $correo): int
-    {
-        $passwordTemporal = password_hash('Temporal123', PASSWORD_BCRYPT);
+    public function crear(
+        string $nombre,
+        string $apellido,
+        string $correo,
+        string $password,
+        ?string $numero = null
+    ): int {
+        $hash = password_hash($password, PASSWORD_DEFAULT);
 
         $sql = "INSERT INTO {$this->table}
-                (Nombre_Cliente, Apellido_Cliente, Numero, Correo, Contrasena)
-                VALUES (:nombre, :apellido, :numero, :correo, :contrasena)";
+                (Nombre_Cliente, Apellido_Cliente, Correo, Contrasena, Numero)
+                VALUES (:nombre, :apellido, :correo, :contrasena, :numero)";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([
             ':nombre' => $nombre,
             ':apellido' => $apellido,
-            ':numero' => $numero,
             ':correo' => $correo,
-            ':contrasena' => $passwordTemporal
+            ':contrasena' => $hash,
+            ':numero' => $numero
         ]);
 
         return (int)$this->conn->lastInsertId();
     }
 
-    public function obtenerOCrear(string $nombre, string $apellido, string $numero, string $correo): int
+    public function autenticar(string $correo, string $contrasena): ?array
     {
         $cliente = $this->buscarPorCorreo($correo);
 
-        if ($cliente) {
-            return (int)$cliente['ID_Cliente'];
+        if (!$cliente) {
+            return null;
         }
 
-        return $this->crear($nombre, $apellido, $numero, $correo);
+        if (!password_verify($contrasena, $cliente['Contrasena'])) {
+            return null;
+        }
+
+        return $cliente;
     }
 }

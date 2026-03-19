@@ -6,6 +6,17 @@
     <?php foreach ($peliculas as $pelicula): ?>
         <div class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm border-0 card-pelicula">
+                <?php if (!empty($pelicula['Imagen'])): ?>
+                    <img 
+                        src="<?= htmlspecialchars($pelicula['Imagen']) ?>" 
+                        class="card-img-top poster-pelicula" 
+                        alt="<?= htmlspecialchars($pelicula['Titulo']) ?>">
+                <?php else: ?>
+                    <div class="poster-placeholder d-flex align-items-center justify-content-center">
+                        <span>Sin imagen</span>
+                    </div>
+                <?php endif; ?>
+
                 <div class="card-body">
                     <h4 class="card-title"><?= htmlspecialchars($pelicula['Titulo']) ?></h4>
                     <p class="text-muted mb-2">Duración: <?= htmlspecialchars((string)$pelicula['Duracion']) ?> min</p>

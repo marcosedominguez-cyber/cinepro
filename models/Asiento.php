@@ -1,120 +1,74 @@
 <?php
-require_once __DIR__ . '/../config/database.php';
 
 class Asiento
 {
     private PDO $conn;
-    private string $table = "Asiento";
+    private string $table = "asiento";
 
     public function __construct(PDO $db)
     {
         $this->conn = $db;
     }
 
-    public function listarDisponiblesPorFuncion(int $idFuncion): array
+    public function crearPorSala(int $idSala, int $cantidadFilas, int $asientosPorFila): bool
     {
-        $sqlSala = "SELECT ID_Sala
-                    FROM Funcion
-                    WHERE ID_Funcion = :id_funcion";
-        $stmtSala = $this->conn->prepare($sqlSala);
-        $stmtSala->execute([':id_funcion' => $idFuncion]);
-        $funcion = $stmtSala->fetch();
+        $filas = range('A', 'Z');
+        $totalNecesario = $cantidadFilas * $asientosPorFila;
 
-        if (!$funcion) {
-            return [];
-        }
-
-        $idSala = (int)$funcion['ID_Sala'];
-
-        $sql = "SELECT
-                    a.ID_Asiento,
-                    a.Numero_Asiento,
-                    a.Fila
-                FROM {$this->table} a
-                WHERE a.ID_Sala = :id_sala
-                  AND a.ID_Asiento NOT IN (
-                      SELECT tc.ID_Asiento
-                      FROM Ticket_Compra tc
-                      WHERE tc.ID_Funcion = :id_funcion
-                  )
-                ORDER BY a.Fila, CAST(a.Numero_Asiento AS UNSIGNED)";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([
-            ':id_sala' => $idSala,
-            ':id_funcion' => $idFuncion
-        ]);
-
-        return $stmt->fetchAll();
-    }
-
-    public function contarPorSala(int $idSala): int
-    {
-        $sql = "SELECT COUNT(*) AS total
-                FROM {$this->table}
-                WHERE ID_Sala = :id_sala";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([':id_sala' => $idSala]);
-        $fila = $stmt->fetch();
-
-        return (int)$fila['total'];
-    }
-
-    public function crearMasivo(int $idSala, int $cantidadFilas, int $asientosPorFila): array
-    {
-        $sqlSala = "SELECT ID_Sala, Nombre, Capacidad
-                    FROM Sala
-                    WHERE ID_Sala = :id_sala";
+        $sqlSala = "SELECT Capacidad FROM sala WHERE ID_Sala = :id_sala";
         $stmtSala = $this->conn->prepare($sqlSala);
         $stmtSala->execute([':id_sala' => $idSala]);
         $sala = $stmtSala->fetch();
 
         if (!$sala) {
-            return ['ok' => false, 'mensaje' => 'La sala no existe.'];
+            return false;
         }
 
-        $existentes = $this->contarPorSala($idSala);
+        if ($totalNecesario > (int)$sala['Capacidad']) {
+            return false;
+        }
+
+        $sqlCheck = "SELECT COUNT(*) AS total FROM {$this->table} WHERE ID_Sala = :id_sala";
+        $stmtCheck = $this->conn->prepare($sqlCheck);
+        $stmtCheck->execute([':id_sala' => $idSala]);
+        $existentes = (int)$stmtCheck->fetch()['total'];
+
         if ($existentes > 0) {
-            return ['ok' => false, 'mensaje' => 'Esa sala ya tiene asientos registrados.'];
+            return false;
         }
 
-        $totalNuevos = $cantidadFilas * $asientosPorFila;
-        if ($totalNuevos > (int)$sala['Capacidad']) {
-            return ['ok' => false, 'mensaje' => 'La cantidad de asientos supera la capacidad de la sala.'];
-        }
+        $sql = "INSERT INTO {$this->table} (Fila, Numero_Asiento, ID_Sala)
+                VALUES (:fila, :numero, :id_sala)";
+        $stmt = $this->conn->prepare($sql);
 
-        $letras = range('A', 'Z');
-        if ($cantidadFilas > count($letras)) {
-            return ['ok' => false, 'mensaje' => 'Solo se permiten hasta 26 filas.'];
-        }
-
-        try {
-            $this->conn->beginTransaction();
-
-            $sqlInsert = "INSERT INTO {$this->table} (Numero_Asiento, Fila, ID_Sala)
-                          VALUES (:numero_asiento, :fila, :id_sala)";
-            $stmtInsert = $this->conn->prepare($sqlInsert);
-
-            for ($i = 0; $i < $cantidadFilas; $i++) {
-                $fila = $letras[$i];
-
-                for ($n = 1; $n <= $asientosPorFila; $n++) {
-                    $stmtInsert->execute([
-                        ':numero_asiento' => (string)$n,
-                        ':fila' => $fila,
-                        ':id_sala' => $idSala
-                    ]);
-                }
+        for ($i = 0; $i < $cantidadFilas; $i++) {
+            $fila = $filas[$i];
+            for ($j = 1; $j <= $asientosPorFila; $j++) {
+                $stmt->execute([
+                    ':fila' => $fila,
+                    ':numero' => $j,
+                    ':id_sala' => $idSala
+                ]);
             }
-
-            $this->conn->commit();
-
-            return [
-                'ok' => true,
-                'mensaje' => "Se crearon {$totalNuevos} asientos para la sala {$sala['Nombre']}."
-            ];
-        } catch (PDOException $e) {
-            $this->conn->rollBack();
-            return ['ok' => false, 'mensaje' => 'Error al crear asientos: ' . $e->getMessage()];
         }
+
+        return true;
+    }
+
+    public function obtenerDisponiblesPorFuncion(int $idFuncion): array
+    {
+        $sql = "SELECT a.ID_Asiento, a.Fila, a.Numero_Asiento
+                FROM asiento a
+                INNER JOIN funcion f ON f.ID_Sala = a.ID_Sala
+                WHERE f.ID_Funcion = :id_funcion
+                AND a.ID_Asiento NOT IN (
+                    SELECT t.ID_Asiento
+                    FROM ticket_compra t
+                    WHERE t.ID_Funcion = :id_funcion
+                )
+                ORDER BY a.Fila, a.Numero_Asiento";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([':id_funcion' => $idFuncion]);
+        return $stmt->fetchAll();
     }
 }
