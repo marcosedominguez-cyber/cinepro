@@ -235,6 +235,45 @@ if (!isset($_SESSION['id_admin'])) {
             </div>
         </div>
 
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <h5 class="mb-3">Historial de funciones creadas</h5>
+
+                <?php if (!empty($funciones)): ?>
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Película</th>
+                                    <th>Sala</th>
+                                    <th>Fecha</th>
+                                    <th>Hora</th>
+                                    <th>Precio</th>
+                                    <th>Admin que la creó</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($funciones as $funcion): ?>
+                                    <tr>
+                                        <td>#<?= htmlspecialchars((string)$funcion['ID_Funcion']) ?></td>
+                                        <td><?= htmlspecialchars($funcion['Titulo']) ?></td>
+                                        <td><?= htmlspecialchars($funcion['Sala']) ?></td>
+                                        <td><?= htmlspecialchars($funcion['Fecha_Funcion']) ?></td>
+                                        <td><?= htmlspecialchars($funcion['Hora_Funcion']) ?></td>
+                                        <td>Bs <?= htmlspecialchars((string)$funcion['Precio_Base']) ?></td>
+                                        <td><?= htmlspecialchars($funcion['Admin_Creador'] ?? 'No registrado') ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php else: ?>
+                    <p class="mb-0 text-muted">Aún no hay funciones registradas.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+
         <div class="card shadow-sm border-0">
             <div class="card-body">
                 <h5 class="mb-3">Tickets vendidos</h5>

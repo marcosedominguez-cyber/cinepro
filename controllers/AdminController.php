@@ -31,16 +31,17 @@ class AdminController
     }
 
     public function index(): void
-    {
-        $this->verificarAdmin();
+{
+    $this->verificarAdmin();
 
-        $peliculas = $this->peliculaModel->listar();
-        $salas = $this->salaModel->listar();
-        $tickets = $this->ticketModel->listarVendidos();
-        $generos = $this->generoModel->listar();
+    $peliculas = $this->peliculaModel->listar();
+    $salas = $this->salaModel->listar();
+    $tickets = $this->ticketModel->listarVendidos();
+    $generos = $this->generoModel->listar();
+    $funciones = $this->funcionModel->listarConPeliculaYSala();
 
-        require __DIR__ . '/../views/admin.php';
-    }
+    require __DIR__ . '/../views/admin.php';
+}
 
     public function guardarSala(): void
     {
@@ -94,30 +95,31 @@ class AdminController
     }
 
     public function guardarFuncion(): void
-    {
-        $this->verificarAdmin();
+{
+    $this->verificarAdmin();
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $fecha = trim($_POST['fecha_funcion'] ?? '');
-            $hora = trim($_POST['hora_funcion'] ?? '');
-            $precio = (float)($_POST['precio_base'] ?? 0);
-            $idPelicula = (int)($_POST['id_pelicula'] ?? 0);
-            $idSala = (int)($_POST['id_sala'] ?? 0);
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $fecha = trim($_POST['fecha_funcion'] ?? '');
+        $hora = trim($_POST['hora_funcion'] ?? '');
+        $precio = (float)($_POST['precio_base'] ?? 0);
+        $idPelicula = (int)($_POST['id_pelicula'] ?? 0);
+        $idSala = (int)($_POST['id_sala'] ?? 0);
+        $idAdmin = (int)($_SESSION['id_admin'] ?? 0);
 
-            if ($fecha !== '' && $hora !== '' && $precio > 0 && $idPelicula > 0 && $idSala > 0) {
-                $ok = $this->funcionModel->crear($fecha, $hora, $precio, $idPelicula, $idSala);
+        if ($fecha !== '' && $hora !== '' && $precio > 0 && $idPelicula > 0 && $idSala > 0 && $idAdmin > 0) {
+            $ok = $this->funcionModel->crear($fecha, $hora, $precio, $idPelicula, $idSala, $idAdmin);
 
-                if ($ok) {
-                    $_SESSION['success_admin'] = 'Función guardada correctamente.';
-                } else {
-                    $_SESSION['error_admin'] = 'No se pudo guardar la función porque se cruza con otra en la misma sala. Se considera la duración de la película más 15 minutos de limpieza.';
-                }
+            if ($ok) {
+                $_SESSION['success_admin'] = 'Función guardada correctamente.';
             } else {
-                $_SESSION['error_admin'] = 'Datos incompletos para crear la función.';
+                $_SESSION['error_admin'] = 'No se pudo guardar la función porque se cruza con otra en la misma sala. Se considera la duración de la película más 15 minutos de limpieza.';
             }
+        } else {
+            $_SESSION['error_admin'] = 'Datos incompletos para crear la función.';
         }
-
-        header('Location: index.php?accion=admin');
-        exit;
     }
+
+    header('Location: index.php?accion=admin');
+    exit;
+}
 }

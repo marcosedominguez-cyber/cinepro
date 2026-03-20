@@ -19,12 +19,15 @@ class Funcion
                     f.Precio_Base,
                     f.ID_Pelicula,
                     f.ID_Sala,
+                    f.ID_admin,
                     p.Titulo,
                     p.Duracion,
-                    s.Nombre AS Sala
+                    s.Nombre AS Sala,
+                    a.Nombre_completo AS Admin_Creador
                 FROM {$this->table} f
                 INNER JOIN pelicula p ON p.ID_Pelicula = f.ID_Pelicula
                 INNER JOIN sala s ON s.ID_Sala = f.ID_Sala
+                LEFT JOIN administrador a ON a.ID_admin = f.ID_admin
                 ORDER BY f.Fecha_Funcion ASC, f.Hora_Funcion ASC";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
@@ -40,12 +43,15 @@ class Funcion
                     f.Precio_Base,
                     f.ID_Pelicula,
                     f.ID_Sala,
+                    f.ID_admin,
                     p.Titulo,
                     p.Duracion,
-                    s.Nombre AS Sala
+                    s.Nombre AS Sala,
+                    a.Nombre_completo AS Admin_Creador
                 FROM {$this->table} f
                 INNER JOIN pelicula p ON p.ID_Pelicula = f.ID_Pelicula
                 INNER JOIN sala s ON s.ID_Sala = f.ID_Sala
+                LEFT JOIN administrador a ON a.ID_admin = f.ID_admin
                 WHERE f.ID_Funcion = :id_funcion
                 LIMIT 1";
         $stmt = $this->conn->prepare($sql);
@@ -60,7 +66,8 @@ class Funcion
         string $hora,
         float $precioBase,
         int $idPelicula,
-        int $idSala
+        int $idSala,
+        int $idAdmin
     ): bool {
         $duracionNueva = $this->obtenerDuracionPelicula($idPelicula);
 
@@ -90,8 +97,8 @@ class Funcion
         }
 
         $sql = "INSERT INTO {$this->table} 
-                (Fecha_Funcion, Hora_Funcion, Precio_Base, ID_Pelicula, ID_Sala)
-                VALUES (:fecha, :hora, :precio, :id_pelicula, :id_sala)";
+                (Fecha_Funcion, Hora_Funcion, Precio_Base, ID_Pelicula, ID_Sala, ID_admin)
+                VALUES (:fecha, :hora, :precio, :id_pelicula, :id_sala, :id_admin)";
         $stmt = $this->conn->prepare($sql);
 
         return $stmt->execute([
@@ -99,7 +106,8 @@ class Funcion
             ':hora' => $hora,
             ':precio' => $precioBase,
             ':id_pelicula' => $idPelicula,
-            ':id_sala' => $idSala
+            ':id_sala' => $idSala,
+            ':id_admin' => $idAdmin
         ]);
     }
 
