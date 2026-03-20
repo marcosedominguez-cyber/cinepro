@@ -15,6 +15,15 @@ class PeliculaController
         $this->generoModel = new Genero($db);
     }
 
+    private function verificarAdmin(): void
+    {
+        if (!isset($_SESSION['id_admin'])) {
+            $_SESSION['error_admin_login'] = 'Debes iniciar sesión como administrador.';
+            header('Location: index.php?accion=login_admin');
+            exit;
+        }
+    }
+
     public function cartelera(): void
     {
         $peliculas = $this->peliculaModel->listar();
@@ -25,6 +34,8 @@ class PeliculaController
 
     public function guardar(): void
     {
+        $this->verificarAdmin();
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $titulo = trim($_POST['titulo'] ?? '');
             $duracion = (int)($_POST['duracion'] ?? 0);
@@ -43,7 +54,6 @@ class PeliculaController
                 $nombreOriginal = $_FILES['imagen']['name'];
                 $tmp = $_FILES['imagen']['tmp_name'];
                 $extension = strtolower(pathinfo($nombreOriginal, PATHINFO_EXTENSION));
-
                 $extPermitidas = ['jpg', 'jpeg', 'png', 'webp'];
 
                 if (in_array($extension, $extPermitidas, true)) {
@@ -85,6 +95,8 @@ class PeliculaController
                     $this->db->rollBack();
                     $_SESSION['error_admin'] = 'No se pudo guardar la película.';
                 }
+            } else {
+                $_SESSION['error_admin'] = 'Datos inválidos para guardar la película.';
             }
         }
 
@@ -94,6 +106,8 @@ class PeliculaController
 
     public function eliminar(): void
     {
+        $this->verificarAdmin();
+
         $id = (int)($_GET['id'] ?? 0);
 
         if ($id > 0) {

@@ -42,7 +42,14 @@ $accionActual = $_GET['accion'] ?? 'home';
                     <a href="index.php?accion=logout" class="btn btn-outline-danger btn-sm px-3">SALIR</a>
                 <?php else: ?>
                     <a href="index.php?accion=login" class="btn btn-dark-cinema btn-sm px-4 <?= $accionActual === 'login' ? 'active' : '' ?>">LOGIN</a>
-                    <a href="index.php?accion=admin" class="btn btn-outline-dark btn-sm px-4">ADMIN</a>
+                <?php endif; ?>
+
+                <?php if (isset($_SESSION['id_admin'])): ?>
+                    <span class="text-muted small">Admin: <strong><?= htmlspecialchars($_SESSION['nombre_admin']) ?></strong></span>
+                    <a href="index.php?accion=admin" class="btn btn-outline-dark btn-sm px-4 <?= $accionActual === 'admin' ? 'active' : '' ?>">PANEL ADMIN</a>
+                    <a href="index.php?accion=logout_admin" class="btn btn-warning btn-sm px-3">SALIR ADMIN</a>
+                <?php else: ?>
+                    <a href="index.php?accion=login_admin" class="btn btn-outline-dark btn-sm px-4 <?= $accionActual === 'login_admin' ? 'active' : '' ?>">ADMIN</a>
                 <?php endif; ?>
             </div>
         </div>

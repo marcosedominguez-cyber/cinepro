@@ -32,31 +32,38 @@ class AuthController
         $numero = trim($_POST['numero'] ?? '');
         $contrasena = trim($_POST['contrasena'] ?? '');
 
-        if ($nombre === '' || $apellido === '' || $correo === '' || $numero === '' || strlen($contrasena) < 6) {
+        $_SESSION['old_registro'] = [
+            'nombre' => $nombre,
+            'apellido' => $apellido,
+            'correo' => $correo,
+            'numero' => $numero
+        ];
+
+        try {
+            $idCliente = $this->clienteModel->crear(
+                $nombre,
+                $apellido,
+                $correo,
+                $contrasena,
+                $numero !== '' ? $numero : null
+            );
+
+            $_SESSION['id_cliente'] = $idCliente;
+            $_SESSION['nombre_cliente'] = $nombre . ' ' . $apellido;
+            unset($_SESSION['old_registro']);
+            $_SESSION['success_auth'] = 'Cuenta creada correctamente.';
+
+            header('Location: index.php?accion=compra');
+            exit;
+        } catch (InvalidArgumentException $e) {
+            $_SESSION['error_auth'] = $e->getMessage();
+            header('Location: index.php?accion=registro');
+            exit;
+        } catch (Throwable $e) {
+            $_SESSION['error_auth'] = 'No se pudo completar el registro.';
             header('Location: index.php?accion=registro');
             exit;
         }
-
-        $clienteExistente = $this->clienteModel->buscarPorCorreo($correo);
-
-        if ($clienteExistente) {
-            header('Location: index.php?accion=login');
-            exit;
-        }
-
-        $idCliente = $this->clienteModel->crear(
-            $nombre,
-            $apellido,
-            $correo,
-            $contrasena,
-            $numero
-        );
-
-        $_SESSION['id_cliente'] = $idCliente;
-        $_SESSION['nombre_cliente'] = $nombre . ' ' . $apellido;
-
-        header('Location: index.php?accion=compra');
-        exit;
     }
 
     public function autenticar(): void
@@ -74,11 +81,13 @@ class AuthController
         if ($cliente) {
             $_SESSION['id_cliente'] = $cliente['ID_Cliente'];
             $_SESSION['nombre_cliente'] = $cliente['Nombre_Cliente'] . ' ' . $cliente['Apellido_Cliente'];
+            $_SESSION['success_auth'] = 'Sesión iniciada correctamente.';
 
             header('Location: index.php?accion=compra');
             exit;
         }
 
+        $_SESSION['error_auth'] = 'Correo o contraseña incorrectos.';
         header('Location: index.php?accion=login');
         exit;
     }

@@ -21,7 +21,7 @@ class CompraController
     {
         $funciones = $this->funcionModel->listarConPeliculaYSala();
         $funcionSeleccionada = null;
-        $mapaAsientos = []; // Cambiamos esto para guardar las filas completas
+        $mapaAsientos = []; 
 
         $idFuncion = (int)($_GET['id_funcion'] ?? 0);
 
@@ -29,10 +29,8 @@ class CompraController
             $funcionSeleccionada = $this->funcionModel->obtenerPorId($idFuncion);
 
             if ($funcionSeleccionada) {
-                // Usamos la nueva función del Modelo
                 $asientosRaw = $this->asientoModel->obtenerEstadoAsientosPorFuncion($idFuncion);
                 
-                // Agrupamos los asientos por su letra de Fila (A, B, C...)
                 foreach ($asientosRaw as $asiento) {
                     $mapaAsientos[$asiento['Fila']][] = $asiento;
                 }
@@ -56,13 +54,15 @@ class CompraController
 
         $idCliente = (int)$_SESSION['id_cliente'];
         $idFuncion = (int)($_POST['id_funcion'] ?? 0);
-        $idAsiento = (int)($_POST['id_asiento'] ?? 0);
+        // AHORA RECIBIMOS UN ARRAY DE ASIENTOS
+        $idAsientos = $_POST['id_asientos'] ?? []; 
         $metodoPago = trim($_POST['metodo_pago'] ?? 'Efectivo');
 
         $funcion = $this->funcionModel->obtenerPorId($idFuncion);
 
-        if (!$funcion || $idAsiento <= 0) {
-            $_SESSION['error_compra'] = 'Datos de compra inválidos.';
+        // Validamos que sea un array y no esté vacío
+        if (!$funcion || empty($idAsientos) || !is_array($idAsientos)) {
+            $_SESSION['error_compra'] = 'Debes seleccionar al menos un asiento.';
             header('Location: index.php?accion=compra&id_funcion=' . $idFuncion);
             exit;
         }
@@ -70,30 +70,39 @@ class CompraController
         $this->db->beginTransaction();
 
         try {
+            // Se crea UNA SOLA COMPRA global
             $idCompra = $this->compraModel->crear($idCliente);
 
-            $ok = $this->ticketModel->crear(
-                $idFuncion,
-                $idCompra,
-                $idAsiento,
-                $metodoPago,
-                (float)$funcion['Precio_Base']
-            );
+            // CICLO: Guardamos un TICKET por cada asiento seleccionado
+            foreach ($idAsientos as $idAsiento) {
+                $idAsientoInt = (int)$idAsiento;
+                if ($idAsientoInt <= 0) continue;
 
-            if (!$ok) {
-                throw new Exception('El asiento ya fue vendido.');
+                $ok = $this->ticketModel->crear(
+                    $idFuncion,
+                    $idCompra,
+                    $idAsientoInt,
+                    $metodoPago,
+                    (float)$funcion['Precio_Base']
+                );
+
+                if (!$ok) {
+                    throw new Exception('Alguien más ya compró uno de los asientos seleccionados.');
+                }
             }
 
             $this->db->commit();
 
-            $_SESSION['success_compra'] = 'Compra realizada correctamente.';
+            // Mostramos cuántos tickets compró
+            $cantidad = count($idAsientos);
+            $_SESSION['success_compra'] = "¡Éxito! Compra de $cantidad ticket(s) realizada correctamente.";
             header('Location: index.php?accion=compra&id_funcion=' . $idFuncion);
             exit;
 
         } catch (Throwable $e) {
             $this->db->rollBack();
 
-            $_SESSION['error_compra'] = 'No se pudo guardar la compra: ' . $e->getMessage();
+            $_SESSION['error_compra'] = 'No se pudo procesar la compra: ' . $e->getMessage();
             header('Location: index.php?accion=compra&id_funcion=' . $idFuncion);
             exit;
         }

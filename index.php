@@ -12,12 +12,14 @@ require_once __DIR__ . '/models/Pago.php';
 require_once __DIR__ . '/models/Ticket.php';
 require_once __DIR__ . '/models/Compra.php';
 require_once __DIR__ . '/models/Genero.php';
+require_once __DIR__ . '/models/Administrador.php';
 
 require_once __DIR__ . '/controllers/HomeController.php';
 require_once __DIR__ . '/controllers/PeliculaController.php';
 require_once __DIR__ . '/controllers/AdminController.php';
 require_once __DIR__ . '/controllers/CompraController.php';
 require_once __DIR__ . '/controllers/AuthController.php';
+require_once __DIR__ . '/controllers/AdminAuthController.php';
 
 $db = Database::connect();
 $accion = $_GET['accion'] ?? 'home';
@@ -86,5 +88,16 @@ switch ($accion) {
     case 'eliminar_pelicula':
         (new PeliculaController($db))->eliminar();
         break;        
+    case 'login_admin':
+        (new AdminAuthController($db))->login();
+        break;
+
+    case 'autenticar_admin':
+        (new AdminAuthController($db))->autenticar();
+        break;
+
+    case 'logout_admin':
+        (new AdminAuthController($db))->logout();
+        break;    
         
 }

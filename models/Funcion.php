@@ -3,7 +3,7 @@
 class Funcion
 {
     private PDO $conn;
-    private string $table = "Funcion";
+    private string $table = "funcion";
 
     public function __construct(PDO $db)
     {
@@ -20,10 +20,11 @@ class Funcion
                     f.ID_Pelicula,
                     f.ID_Sala,
                     p.Titulo,
+                    p.Duracion,
                     s.Nombre AS Sala
                 FROM {$this->table} f
-                INNER JOIN Pelicula p ON p.ID_Pelicula = f.ID_Pelicula
-                INNER JOIN Sala s ON s.ID_Sala = f.ID_Sala
+                INNER JOIN pelicula p ON p.ID_Pelicula = f.ID_Pelicula
+                INNER JOIN sala s ON s.ID_Sala = f.ID_Sala
                 ORDER BY f.Fecha_Funcion ASC, f.Hora_Funcion ASC";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
@@ -40,10 +41,11 @@ class Funcion
                     f.ID_Pelicula,
                     f.ID_Sala,
                     p.Titulo,
+                    p.Duracion,
                     s.Nombre AS Sala
                 FROM {$this->table} f
-                INNER JOIN Pelicula p ON p.ID_Pelicula = f.ID_Pelicula
-                INNER JOIN Sala s ON s.ID_Sala = f.ID_Sala
+                INNER JOIN pelicula p ON p.ID_Pelicula = f.ID_Pelicula
+                INNER JOIN sala s ON s.ID_Sala = f.ID_Sala
                 WHERE f.ID_Funcion = :id_funcion
                 LIMIT 1";
         $stmt = $this->conn->prepare($sql);
@@ -60,6 +62,33 @@ class Funcion
         int $idPelicula,
         int $idSala
     ): bool {
+        $duracionNueva = $this->obtenerDuracionPelicula($idPelicula);
+
+        if ($duracionNueva <= 0) {
+            return false;
+        }
+
+        $nuevoInicio = new DateTime($fecha . ' ' . $hora);
+        $nuevoFin = clone $nuevoInicio;
+        $nuevoFin->modify('+' . ($duracionNueva + 15) . ' minutes');
+
+        $funcionesSala = $this->obtenerFuncionesPorSalaYFecha($idSala, $fecha);
+
+        foreach ($funcionesSala as $funcionExistente) {
+            $inicioExistente = new DateTime(
+                $funcionExistente['Fecha_Funcion'] . ' ' . $funcionExistente['Hora_Funcion']
+            );
+
+            $finExistente = clone $inicioExistente;
+            $finExistente->modify('+' . (((int)$funcionExistente['Duracion']) + 15) . ' minutes');
+
+            $hayCruce = ($nuevoInicio < $finExistente) && ($nuevoFin > $inicioExistente);
+
+            if ($hayCruce) {
+                return false;
+            }
+        }
+
         $sql = "INSERT INTO {$this->table} 
                 (Fecha_Funcion, Hora_Funcion, Precio_Base, ID_Pelicula, ID_Sala)
                 VALUES (:fecha, :hora, :precio, :id_pelicula, :id_sala)";
@@ -72,5 +101,40 @@ class Funcion
             ':id_pelicula' => $idPelicula,
             ':id_sala' => $idSala
         ]);
+    }
+
+    private function obtenerDuracionPelicula(int $idPelicula): int
+    {
+        $sql = "SELECT Duracion
+                FROM pelicula
+                WHERE ID_Pelicula = :id_pelicula
+                LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([':id_pelicula' => $idPelicula]);
+        $data = $stmt->fetch();
+
+        return $data ? (int)$data['Duracion'] : 0;
+    }
+
+    private function obtenerFuncionesPorSalaYFecha(int $idSala, string $fecha): array
+    {
+        $sql = "SELECT 
+                    f.ID_Funcion,
+                    f.Fecha_Funcion,
+                    f.Hora_Funcion,
+                    f.ID_Pelicula,
+                    p.Duracion
+                FROM {$this->table} f
+                INNER JOIN pelicula p ON p.ID_Pelicula = f.ID_Pelicula
+                WHERE f.ID_Sala = :id_sala
+                  AND f.Fecha_Funcion = :fecha
+                ORDER BY f.Hora_Funcion ASC";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([
+            ':id_sala' => $idSala,
+            ':fecha' => $fecha
+        ]);
+
+        return $stmt->fetchAll();
     }
 }

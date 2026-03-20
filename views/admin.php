@@ -1,3 +1,10 @@
+<?php
+if (!isset($_SESSION['id_admin'])) {
+    header('Location: index.php?accion=login_admin');
+    exit;
+}
+?>
+
 <?php require __DIR__ . '/partials/header.php'; ?>
 
 <h2 class="mb-4">Panel administrador</h2>
